@@ -115,9 +115,9 @@ module "eks" {
 
   eks_managed_node_groups = {
     control = {
-      min_size     = 2
-      max_size     = 2
-      desired_size = 2
+      min_size     = 3
+      max_size     = 3
+      desired_size = 3
 
       instance_types = ["m5.large"]
       iam_role_additional_policies = {
