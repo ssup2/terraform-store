@@ -159,6 +159,42 @@ module "eks" {
   ]
 }
 
+## EKS / Addons
+module "eks_blueprints_addons" {
+  source  = "aws-ia/eks-blueprints-addons/aws"
+
+  cluster_name      = module.eks.cluster_name
+  cluster_endpoint  = module.eks.cluster_endpoint
+  cluster_version   = module.eks.cluster_version
+  oidc_provider_arn = module.eks.oidc_provider_arn
+
+  eks_addons = {
+    coredns = {
+      most_recent = true
+      configuration_values = jsonencode({
+        nodeSelector: {
+          type: "control"
+        }
+        tolerations: [
+          {
+            key: "type",
+            value: "control",
+            operator: "Equal",
+            effect: "NoSchedule"
+          }
+        ]
+      })
+    }
+    vpc-cni = {
+      most_recent = true
+    }
+    kube-proxy = {
+      most_recent = true
+    }
+  }
+}
+
+
 ## EKS / Karpenter
 module "karpenter" {
   source = "terraform-aws-modules/eks/aws//modules/karpenter"
@@ -211,6 +247,8 @@ resource "kubectl_manifest" "karpenter_provisioner" {
     metadata:
       name: default
     spec:
+      consolidation:
+        enabled: true
       requirements:
         - key: karpenter.sh/capacity-type
           operator: In
@@ -229,7 +267,6 @@ resource "kubectl_manifest" "karpenter_provisioner" {
           memory: 1000Gi
       providerRef:
         name: default
-      ttlSecondsAfterEmpty: 30
   YAML
 
   depends_on = [
