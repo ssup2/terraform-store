@@ -127,6 +127,14 @@ module "eks" {
       labels = {
         type = "control"
       }
+
+      taints = {
+        dedicated = {
+          key    = "type"
+          value  = "control"
+          effect = "NO_SCHEDULE"
+        }
+      }
     }
   }
 
@@ -238,6 +246,22 @@ resource "helm_release" "karpenter" {
     name  = "nodeSelector.type"
     value = "control"
   }
+  set {
+    name  = "tolerations[0].key"
+    value = "type"
+  }
+  set {
+    name  = "tolerations[0].value"
+    value = "control"
+  }
+  set {
+    name  = "tolerations[0].operator"
+    value = "Equal"
+  }
+  set {
+    name  = "tolerations[0].effect"
+    value = "NoSchedule"
+  }
 }
 
 resource "kubectl_manifest" "karpenter_provisioner" {
@@ -331,6 +355,23 @@ resource "helm_release" "aws_load_balancer_controller" {
     name  = "nodeSelector.type"
     value = "control"
   }
+  set {
+    name  = "tolerations[0].key"
+    value = "type"
+  }
+  set {
+    name  = "tolerations[0].value"
+    value = "control"
+  }
+  set {
+    name  = "tolerations[0].operator"
+    value = "Equal"
+  }
+  set {
+    name  = "tolerations[0].effect"
+    value = "NoSchedule"
+  }
+
 }
 
 ## EKS / External DNS
@@ -369,6 +410,22 @@ resource "helm_release" "external_dns" {
   set {
     name  = "nodeSelector.type"
     value = "control"
+  }
+  set {
+    name  = "tolerations[0].key"
+    value = "type"
+  }
+  set {
+    name  = "tolerations[0].value"
+    value = "control"
+  }
+  set {
+    name  = "tolerations[0].operator"
+    value = "Equal"
+  }
+  set {
+    name  = "tolerations[0].effect"
+    value = "NoSchedule"
   }
   set {
     name  = "replicaCount"
@@ -412,6 +469,22 @@ resource "helm_release" "aws_efs_csi_driver" {
   set {
     name  = "controller.nodeSelector.type"
     value = "control"
+  }
+  set {
+    name  = "controller.tolerations[0].key"
+    value = "type"
+  }
+  set {
+    name  = "controller.tolerations[0].value"
+    value = "control"
+  }
+  set {
+    name  = "controller.tolerations[0].operator"
+    value = "Equal"
+  }
+  set {
+    name  = "controller.tolerations[0].effect"
+    value = "NoSchedule"
   }
 }
 
