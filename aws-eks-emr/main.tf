@@ -14,6 +14,11 @@ provider "aws" {
   region = local.region
 }
 
+provider "aws" {
+  alias  = "ecr"
+  region = "us-east-1"
+}
+
 provider "kubernetes" {
   host                   = module.eks.cluster_endpoint
   cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
@@ -57,6 +62,12 @@ provider "kubectl" {
 
 ## Data
 data "aws_availability_zones" "available" {}
+
+data "aws_caller_identity" "current" {}
+
+data "aws_ecrpublic_authorization_token" "token" {
+  provider = aws.ecr
+}
 
 ## Local Vars
 locals {
@@ -163,10 +174,10 @@ module "eks" {
     }
   }
 
-  ## for Karpenter
   manage_aws_auth_configmap = true
   aws_auth_roles = [
     {
+      ## for Karpenter
       rolearn  = module.karpenter.role_arn
       username = "system:node:{{EC2PrivateDNSName}}"
       groups = [
@@ -174,6 +185,12 @@ module "eks" {
         "system:nodes",
       ]
     },
+    {
+      ## for EMR
+      rolearn  = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/AWSServiceRoleForAmazonEMRContainers"
+      username = "emr-containers"
+      groups   = []
+    }
   ]
 }
 
@@ -211,7 +228,6 @@ module "eks_blueprints_addons" {
     }
   }
 }
-
 
 ## EKS / Karpenter
 module "karpenter" {
@@ -326,6 +342,56 @@ resource "kubectl_manifest" "karpenter_node_template" {
   depends_on = [
     helm_release.karpenter
   ]
+}
+
+## EKS / EMR
+module "emr_containers" {
+  source = "github.com/awslabs/data-on-eks//workshop/modules/emr-eks-containers"
+
+  eks_cluster_id        = module.eks.cluster_name
+  eks_oidc_provider_arn = module.eks.oidc_provider_arn
+
+  emr_on_eks_config = {
+    emr-a = {
+      name = format("%s-%s", module.eks.cluster_name, "emr-a")
+
+      create_namespace = true
+      namespace        = "emr-a"
+
+      execution_role_name                    = format("%s-%s", module.eks.cluster_name, "emr-a")
+      execution_iam_role_description         = "EMR Execution Role for emr-a"
+      execution_iam_role_additional_policies = ["arn:aws:iam::aws:policy/AmazonS3FullAccess", "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"]
+    },
+
+    emr-b = {
+      name = format("%s-%s", module.eks.cluster_name, "emr-b")
+
+      create_namespace = true
+      namespace        = "emr-b"
+
+      execution_role_name                    = format("%s-%s", module.eks.cluster_name, "emr-b")
+      execution_iam_role_description         = "EMR Execution Role for emr-b"
+      execution_iam_role_additional_policies = ["arn:aws:iam::aws:policy/AmazonS3FullAccess", "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"]
+    }
+  }
+}
+
+## EKS / EMR ACK
+module "emr_ack" {
+  source = "github.com/awslabs/data-on-eks///workshop/modules/emr-ack"
+
+  eks_cluster_id                 = module.eks.cluster_name
+  eks_oidc_provider_arn          = module.eks.oidc_provider_arn
+  ecr_public_repository_username = data.aws_ecrpublic_authorization_token.token.user_name
+  ecr_public_repository_password = data.aws_ecrpublic_authorization_token.token.password
+
+  helm_config = {
+    deployment = {
+      nodeSelector = {
+        type = "control"
+      }
+    }
+  }
 }
 
 ## EKS / Load Balancer Controller
