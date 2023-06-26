@@ -1,14 +1,3 @@
-## Terraform
-terraform {
-    backend "s3" {
-      bucket         = "ssupp-tfstate" 
-      key            = "ts-eks-emr/terraform.tfstate" 
-      region         = "ap-northeast-2"  
-      encrypt        = true
-      dynamodb_table = "ssupp-tfstate-lock"
-    }
-}
-
 ## Provider
 provider "aws" {
   region = local.region
@@ -352,25 +341,25 @@ module "emr_containers" {
   eks_oidc_provider_arn = module.eks.oidc_provider_arn
 
   emr_on_eks_config = {
-    emr-a = {
-      name = format("%s-%s", module.eks.cluster_name, "emr-a")
+    emr-cli = {
+      name = format("%s-%s", module.eks.cluster_name, "emr-cli")
 
       create_namespace = true
-      namespace        = "emr-a"
+      namespace        = "emr-cli"
 
-      execution_role_name                    = format("%s-%s", module.eks.cluster_name, "emr-a")
+      execution_role_name                    = format("%s-%s", module.eks.cluster_name, "emr-cli")
       execution_iam_role_description         = "EMR Execution Role for emr-a"
       execution_iam_role_additional_policies = ["arn:aws:iam::aws:policy/AmazonS3FullAccess", "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"]
     },
 
-    emr-b = {
-      name = format("%s-%s", module.eks.cluster_name, "emr-b")
+    emr-ack = {
+      name = format("%s-%s", module.eks.cluster_name, "emr-ack")
 
       create_namespace = true
-      namespace        = "emr-b"
+      namespace        = "emr-ack"
 
-      execution_role_name                    = format("%s-%s", module.eks.cluster_name, "emr-b")
-      execution_iam_role_description         = "EMR Execution Role for emr-b"
+      execution_role_name                    = format("%s-%s", module.eks.cluster_name, "emr-ack")
+      execution_iam_role_description         = "EMR Execution Role for emr-ack"
       execution_iam_role_additional_policies = ["arn:aws:iam::aws:policy/AmazonS3FullAccess", "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"]
     }
   }
