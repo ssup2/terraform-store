@@ -389,6 +389,122 @@ EOF
   }
 }
 
+## EKS / Spark
+resource "helm_release" "spark_operator" {
+  namespace  = "spark"
+  create_namespace = true
+
+  name       = "spark-operator"
+  chart      = "spark-operator"
+  repository = "https://googlecloudplatform.github.io/spark-on-k8s-operator"
+
+  set {
+    name  = "nodeSelector.type"
+    value = "control"
+  }
+  set {
+    name  = "tolerations[0].key"
+    value = "type"
+  }
+  set {
+    name  = "tolerations[0].value"
+    value = "control"
+  }
+  set {
+    name  = "tolerations[0].operator"
+    value = "Equal"
+  }
+  set {
+    name  = "tolerations[0].effect"
+    value = "NoSchedule"
+  }
+  set {
+    name = "serviceAccounts.spark.name"
+    value = "spark"
+  }
+}
+
+#resource "helm_release" "spark_history_server" {
+#  namespace  = "spark"
+#  create_namespace = true
+
+#  name       = "spark-history-server"
+#  chart      = "spark-history-server"
+#  repository = "https://hyper-mesh.github.io/spark-history-server"
+
+#  set {
+#    name  = "nodeSelector.type"
+#    value = "control"
+#  }
+#  set {
+#    name  = "tolerations[0].key"
+#    value = "type"
+#  }
+#  set {
+#    name  = "tolerations[0].value"
+#    value = "control"
+#  }
+#  set {
+#    name  = "tolerations[0].operator"
+#    value = "Equal"
+#  }
+#  set {
+#    name  = "tolerations[0].effect"
+#    value = "NoSchedule"
+#  }
+#}
+
+## EKS / Scheduler
+resource "helm_release" "yunikorn" {
+  namespace  = "scheduler"
+  create_namespace = true
+
+  name       = "yunikorn"
+  chart      = "yunikorn"
+  repository = "https://apache.github.io/yunikorn-release"
+
+  set {
+    name  = "nodeSelector.type"
+    value = "control"
+  }
+  set {
+    name  = "tolerations[0].key"
+    value = "type"
+  }
+  set {
+    name  = "tolerations[0].value"
+    value = "control"
+  }
+  set {
+    name  = "tolerations[0].operator"
+    value = "Equal"
+  }
+  set {
+    name  = "tolerations[0].effect"
+    value = "NoSchedule"
+  }
+  set {
+    name  = "admissionController.nodeSelector.type"
+    value = "control"
+  }
+  set {
+    name  = "admissionController.tolerations[0].key"
+    value = "type"
+  }
+  set {
+    name  = "admissionController.tolerations[0].value"
+    value = "control"
+  }
+  set {
+    name  = "admissionController.tolerations[0].operator"
+    value = "Equal"
+  }
+  set {
+    name  = "admissionController.tolerations[0].effect"
+    value = "NoSchedule"
+  }
+}
+
 ## EKS / Load Balancer Controller
 module "eks_load_balancer_controller_irsa_role" {
   source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
@@ -442,7 +558,6 @@ resource "helm_release" "aws_load_balancer_controller" {
     name  = "tolerations[0].effect"
     value = "NoSchedule"
   }
-
 }
 
 ## EKS / External DNS
