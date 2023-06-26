@@ -386,11 +386,17 @@ module "emr_ack" {
   ecr_public_repository_password = data.aws_ecrpublic_authorization_token.token.password
 
   helm_config = {
-    deployment = {
-      nodeSelector = {
-        type = "control"
-      }
-    }
+    values = [<<EOF
+deployment:
+  nodeSelector:
+    type: "control" 
+  tolerations:
+  - key: "type"
+    operator: "Equal"
+    value: "control"
+    effect: "NoSchedule"
+EOF
+    ]
   }
 }
 
