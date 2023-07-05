@@ -118,6 +118,7 @@ module "eks" {
   source = "terraform-aws-modules/eks/aws"
 
   cluster_name = format("%s-eks", local.name)
+  cluster_version = "1.25"
 
   vpc_id                          = module.vpc.vpc_id
   subnet_ids                      = module.vpc.private_subnets
@@ -160,6 +161,16 @@ module "eks" {
       to_port     = 0
       type        = "ingress"
       self        = true
+    }
+
+    # for spark-operator, yunikorn
+    ingress_control_to_node_all = {
+      description                   = "Control plane to node all ports/protocols"
+      protocol                      = "-1"
+      from_port                     = 0
+      to_port                       = 0
+      type                          = "ingress"
+      source_cluster_security_group = true
     }
   }
 
@@ -422,6 +433,18 @@ resource "helm_release" "spark_operator" {
     name = "serviceAccounts.spark.name"
     value = "spark"
   }
+  set {
+    name = "webhook.enable"
+    value = "true"  
+  }
+  set {
+    name = "webhook.port"
+    value = "8080"
+  }
+  set {
+    name = "uiService.enable"
+    value = "true"
+  }
 }
 
 #resource "helm_release" "spark_history_server" {
@@ -454,7 +477,6 @@ resource "helm_release" "spark_operator" {
 #  }
 #}
 
-## EKS / Scheduler
 resource "helm_release" "yunikorn" {
   namespace  = "scheduler"
   create_namespace = true
@@ -557,69 +579,6 @@ resource "helm_release" "aws_load_balancer_controller" {
   set {
     name  = "tolerations[0].effect"
     value = "NoSchedule"
-  }
-}
-
-## EKS / External DNS
-module "eks_external_dns_irsa_role" {
-  source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-
-  role_name                  = format("eks-external-dns-%s", local.name)
-  attach_external_dns_policy = true
-
-  oidc_providers = {
-    main = {
-      provider_arn               = module.eks.oidc_provider_arn
-      namespace_service_accounts = ["kube-system:external-dns"]
-    }
-  }
-}
-
-resource "helm_release" "external_dns" {
-  namespace  = "kube-system"
-  name       = "external-dns"
-  chart      = "external-dns"
-  repository = "https://charts.bitnami.com/bitnami"
- 
-  set {
-    name  = "provider"
-    value = "aws"
-  }
-  set {
-    name  = "serviceAccount.name"
-    value = "external-dns"
-  }
-  set {
-    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
-    value = module.eks_external_dns_irsa_role.iam_role_arn
-  }
-  set {
-    name  = "nodeSelector.type"
-    value = "control"
-  }
-  set {
-    name  = "tolerations[0].key"
-    value = "type"
-  }
-  set {
-    name  = "tolerations[0].value"
-    value = "control"
-  }
-  set {
-    name  = "tolerations[0].operator"
-    value = "Equal"
-  }
-  set {
-    name  = "tolerations[0].effect"
-    value = "NoSchedule"
-  }
-  set {
-    name  = "replicaCount"
-    value = 1
-  } 
-  set {
-    name  = "domainFilters[0]"
-    value = format("%s.test", local.name) 
   }
 }
 
