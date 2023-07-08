@@ -58,6 +58,28 @@ data "aws_ecrpublic_authorization_token" "token" {
   provider = aws.ecr
 }
 
+data "aws_iam_policy_document" "spark_history_assume_policy" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    principals {
+      type        = "Federated"
+      identifiers = [module.eks.oidc_provider_arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(module.eks.oidc_provider_arn, "/^(.*provider/)/", "")}:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(module.eks.oidc_provider_arn, "/^(.*provider/)/", "")}:sub"
+      values   = ["system:serviceaccount:spark:spark-history"]
+    }
+  }
+}
+
 ## Local Vars
 locals {
   name = "ts-eks-emr"
@@ -65,6 +87,8 @@ locals {
   region   = "ap-northeast-2"
   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
   vpc_cidr = "10.0.0.0/16"
+
+  spark_history_s3_bucket = "ssup2-emr-eks-spark-history"
 }
 
 ## VPC
@@ -447,36 +471,64 @@ resource "helm_release" "spark_operator" {
   }
 }
 
-#resource "helm_release" "spark_history_server" {
-#  namespace  = "spark"
-#  create_namespace = true
+resource "aws_iam_role" "spark_history" {
+  name = format("eks-emr-spark-history-%s", local.name)
 
-#  name       = "spark-history-server"
-#  chart      = "spark-history-server"
-#  repository = "https://hyper-mesh.github.io/spark-history-server"
+  assume_role_policy = data.aws_iam_policy_document.spark_history_assume_policy.json
+  managed_policy_arns = ["arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"]
+}
 
-#  set {
-#    name  = "nodeSelector.type"
-#    value = "control"
-#  }
-#  set {
-#    name  = "tolerations[0].key"
-#    value = "type"
-#  }
-#  set {
-#    name  = "tolerations[0].value"
-#    value = "control"
-#  }
-#  set {
-#    name  = "tolerations[0].operator"
-#    value = "Equal"
-#  }
-#  set {
-#    name  = "tolerations[0].effect"
-#    value = "NoSchedule"
-#  }
-#}
+resource "aws_s3_bucket" "spark_history" {
+  bucket = local.spark_history_s3_bucket
+}
 
+resource "helm_release" "spark_history_server" {
+  namespace  = "spark"
+  create_namespace = true
+
+  name       = "spark-history-server"
+  chart      = "spark-history-server"
+  repository = "https://hyper-mesh.github.io/spark-history-server"
+
+  set {
+    name  = "serviceAccount.create"
+    value = "true"
+  }
+  set {
+    name  = "serviceAccount.name"
+    value = "spark-history"
+  }
+  set {
+    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+    value = aws_iam_role.spark_history.arn
+  }
+  set {
+    name  = "sparkHistoryOpts"
+    value = "-Dspark.history.fs.logDirectory=s3a://${local.spark_history_s3_bucket}/"
+  }
+  set {
+    name  = "nodeSelector.type"
+    value = "control"
+  }
+  set {
+    name  = "tolerations[0].key"
+    value = "type"
+  }
+  set {
+    name  = "tolerations[0].value"
+    value = "control"
+  }
+  set {
+    name  = "tolerations[0].operator"
+    value = "Equal"
+  }
+  set {
+    name  = "tolerations[0].effect"
+    value = "NoSchedule"
+  }
+}
+
+## EKS / Yunikorn
 resource "helm_release" "yunikorn" {
   namespace  = "scheduler"
   create_namespace = true
