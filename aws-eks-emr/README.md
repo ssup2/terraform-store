@@ -1,6 +1,12 @@
 # aws-eks-karpenter-elb-efs
 
-* Provisioning
+## Provisioning EKS cluster, EMR on EKS, spark-operator
+
+* Set S3 bucket names
+  * Modify s3_bucket_spark_history, s3_bucket_spark_history_dir to unique S3 bucket name in locals.tf
+  * Modify bucket in terraform.tf
+
+* Provision
 
 ```
 $ terraform init
