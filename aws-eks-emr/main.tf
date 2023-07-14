@@ -80,17 +80,6 @@ data "aws_iam_policy_document" "spark_history_assume_policy" {
   }
 }
 
-## Local Vars
-locals {
-  name = "ts-eks-emr"
-
-  region   = "ap-northeast-2"
-  azs      = slice(data.aws_availability_zones.available.names, 0, 3)
-  vpc_cidr = "10.0.0.0/16"
-
-  spark_history_s3_bucket = "ssup2-emr-eks-spark-history"
-}
-
 ## VPC
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
@@ -478,8 +467,15 @@ resource "aws_iam_role" "spark_history" {
   managed_policy_arns = ["arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"]
 }
 
-resource "aws_s3_bucket" "spark_history" {
-  bucket = local.spark_history_s3_bucket
+resource "aws_s3_bucket" "spark" {
+  bucket = local.s3_bucket_spark_history
+}
+
+resource "aws_s3_bucket_object" "spark_history" {
+    bucket = "${aws_s3_bucket.spark.id}"
+    acl    = "private"
+    key    = "history/"
+    source = "/dev/null"
 }
 
 resource "helm_release" "spark_history_server" {
@@ -504,7 +500,7 @@ resource "helm_release" "spark_history_server" {
   }
   set {
     name  = "sparkHistoryOpts"
-    value = "-Dspark.history.fs.logDirectory=s3a://${local.spark_history_s3_bucket}/"
+    value = "-Dspark.history.fs.logDirectory=s3a://${local.s3_bucket_spark_history}/${local.s3_bucket_spark_history_dir}"
   }
   set {
     name  = "nodeSelector.type"
