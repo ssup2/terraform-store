@@ -372,8 +372,8 @@ module "emr_containers" {
       namespace        = "emr-cli"
 
       execution_role_name                    = format("%s-%s", module.eks.cluster_name, "emr-cli")
-      execution_iam_role_description         = "EMR Execution Role for emr-a"
-      execution_iam_role_additional_policies = ["arn:aws:iam::aws:policy/AmazonS3FullAccess", "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"]
+      execution_iam_role_description         = "EMR Execution Role for emr-cli"
+      execution_iam_role_additional_policies = ["arn:aws:iam::aws:policy/AmazonS3FullAccess", "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess", "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"]
     },
 
     emr-ack = {
@@ -384,7 +384,7 @@ module "emr_containers" {
 
       execution_role_name                    = format("%s-%s", module.eks.cluster_name, "emr-ack")
       execution_iam_role_description         = "EMR Execution Role for emr-ack"
-      execution_iam_role_additional_policies = ["arn:aws:iam::aws:policy/AmazonS3FullAccess", "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"]
+      execution_iam_role_additional_policies = ["arn:aws:iam::aws:policy/AmazonS3FullAccess", "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess", "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"]
     }
   }
 }
@@ -414,6 +414,35 @@ EOF
 }
 
 ## EKS / Spark
+resource "aws_iam_role" "spark_history" {
+  name = format("eks-emr-spark-history-%s", local.name)
+
+  assume_role_policy = data.aws_iam_policy_document.spark_history_assume_policy.json
+  managed_policy_arns = ["arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"]
+}
+
+resource "aws_s3_bucket" "spark" {
+  bucket = local.s3_bucket_spark
+}
+
+resource "aws_s3_bucket_object" "spark_history" {
+  bucket = "${aws_s3_bucket.spark.id}"
+  acl    = "private"
+  key    = "history/"
+  source = "/dev/null"
+}
+
+resource "aws_s3_bucket_object" "spark_startjobrun" {
+  bucket = "${aws_s3_bucket.spark.id}"
+  acl    = "private"
+  key    = "startjobrun/"
+  source = "/dev/null"
+}
+
+resource "aws_cloudwatch_log_group" "spark_startjobrun" {
+  name = local.cloudwatch_spark_startjobrunlog_group
+}
+
 resource "helm_release" "spark_operator" {
   namespace  = "spark"
   create_namespace = true
@@ -460,24 +489,6 @@ resource "helm_release" "spark_operator" {
   }
 }
 
-resource "aws_iam_role" "spark_history" {
-  name = format("eks-emr-spark-history-%s", local.name)
-
-  assume_role_policy = data.aws_iam_policy_document.spark_history_assume_policy.json
-  managed_policy_arns = ["arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"]
-}
-
-resource "aws_s3_bucket" "spark" {
-  bucket = local.s3_bucket_spark_history
-}
-
-resource "aws_s3_bucket_object" "spark_history" {
-    bucket = "${aws_s3_bucket.spark.id}"
-    acl    = "private"
-    key    = "history/"
-    source = "/dev/null"
-}
-
 resource "helm_release" "spark_history_server" {
   namespace  = "spark"
   create_namespace = true
@@ -500,7 +511,7 @@ resource "helm_release" "spark_history_server" {
   }
   set {
     name  = "sparkHistoryOpts"
-    value = "-Dspark.history.fs.logDirectory=s3a://${local.s3_bucket_spark_history}/${local.s3_bucket_spark_history_dir}"
+    value = "-Dspark.history.fs.logDirectory=s3a://${local.s3_bucket_spark}/${local.s3_bucket_spark_historyserver_dir}"
   }
   set {
     name  = "nodeSelector.type"

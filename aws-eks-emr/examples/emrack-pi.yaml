@@ -1,0 +1,18 @@
+---
+apiVersion: emrcontainers.services.k8s.aws/v1alpha1
+kind: JobRun
+metadata:
+  name: pi
+spec:
+  name: pi
+  virtualClusterID: x46dqlm1u2ih1xldr4by9btvd
+  executionRoleARN: "arn:aws:iam::727618787612:role/ts-eks-emr-eks-emr-b"
+  releaseLabel: "emr-6.7.0-latest"
+  jobDriver:
+    sparkSubmitJobDriver:
+      entryPoint: "local:///usr/lib/spark/examples/src/main/python/pi.py"
+      entryPointArguments:
+      sparkSubmitParameters: "--conf spark.executor.instances=2 --conf spark.executor.memory=2G --conf spark.executor.cores=1 --conf spark.driver.cores=1"
+  configurationOverrides: |
+    ApplicationConfiguration: null
+    MonitoringConfiguration: null
