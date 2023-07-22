@@ -12,7 +12,7 @@ spec:
   sparkVersion: "3.1.1"
   sparkConf:
     spark.eventLog.enabled: "true"
-    spark.eventLog.dir: "s3a://ssup2-spark-history/history"
+    spark.eventLog.dir: "s3a://ssup2-spark/history"
     spark.kubernetes.driver.secretKeyRef.AWS_ACCESS_KEY_ID: "aws-secrets:key"
     spark.kubernetes.driver.secretKeyRef.AWS_SECRET_ACCESS_KEY : "aws-secrets:secret"
     spark.kubernetes.executor.secretKeyRef.AWS_ACCESS_KEY_ID: "aws-secrets:key"
