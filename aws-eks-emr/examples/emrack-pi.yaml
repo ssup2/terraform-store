@@ -3,9 +3,10 @@ apiVersion: emrcontainers.services.k8s.aws/v1alpha1
 kind: JobRun
 metadata:
   name: pi
+  namespace: emr-cli  
 spec:
   name: pi
-  virtualClusterID: x46dqlm1u2ih1xldr4by9btvd
+  virtualClusterID: kkm9hr2cypco1341w5b0iwuaj
   executionRoleARN: "arn:aws:iam::727618787612:role/ts-eks-emr-eks-emr-b"
   releaseLabel: "emr-6.7.0-latest"
   jobDriver:
