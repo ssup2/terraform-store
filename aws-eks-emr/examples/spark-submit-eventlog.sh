@@ -2,7 +2,6 @@
 spark-submit \
  --master k8s://87C2A505AF21618F97F402E454E530AF.yl4.ap-northeast-2.eks.amazonaws.com \
  --deploy-mode cluster \
- --class org.apache.spark.examples.SparkPi \
  --driver-cores 1 \
  --driver-memory 512m \
  --num-executors 1 \
