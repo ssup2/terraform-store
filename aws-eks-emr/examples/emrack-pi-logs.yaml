@@ -1,0 +1,24 @@
+---
+apiVersion: emrcontainers.services.k8s.aws/v1alpha1
+kind: JobRun
+metadata:
+  name: pi-logs
+  namespace: emr-cli  
+spec:
+  name: pi
+  virtualClusterID: kkm9hr2cypco1341w5b0iwuaj
+  executionRoleARN: "arn:aws:iam::727618787612:role/ts-eks-emr-eks-emr-ack"
+  releaseLabel: "emr-6.8.0-latest"
+  jobDriver:
+    sparkSubmitJobDriver:
+      entryPoint: "local:///usr/lib/spark/examples/src/main/python/pi.py"
+      entryPointArguments:
+      sparkSubmitParameters: "--conf spark.driver.cores=1 --conf spark.driver.memory=512M --conf spark.executor.instances=1 --conf spark.executor.cores=1 --conf spark.executor.memory=512M"
+  configurationOverrides: |
+    MonitoringConfiguration:
+      PersistentAppUI: "ENABLED"
+      CloudWatchMonitoringConfiguration:
+        LogGroupName: "spark-startjobrun"
+        LogStreamNamePrefix: "pi-logs"
+      S3MonitoringConfiguration:
+        LogUri: "s3://ssup2-spark/startjobrun/"

@@ -15,8 +15,6 @@ spec:
     spark.eventLog.dir: "s3a://ssup2-spark/history"
     spark.kubernetes.driver.secretKeyRef.AWS_ACCESS_KEY_ID: "aws-secrets:key"
     spark.kubernetes.driver.secretKeyRef.AWS_SECRET_ACCESS_KEY : "aws-secrets:secret"
-    spark.kubernetes.executor.secretKeyRef.AWS_ACCESS_KEY_ID: "aws-secrets:key"
-    spark.kubernetes.executor.secretKeyRef.AWS_SECRET_ACCESS_KEY : "aws-secrets:secret"
   restartPolicy:
     type: OnFailure
     onFailureRetries: 1

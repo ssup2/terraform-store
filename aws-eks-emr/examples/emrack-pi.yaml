@@ -7,7 +7,7 @@ metadata:
 spec:
   name: pi
   virtualClusterID: kkm9hr2cypco1341w5b0iwuaj
-  executionRoleARN: "arn:aws:iam::727618787612:role/ts-eks-emr-eks-emr-b"
+  executionRoleARN: "arn:aws:iam::727618787612:role/ts-eks-emr-eks-emr-ack"
   releaseLabel: "emr-6.7.0-latest"
   jobDriver:
     sparkSubmitJobDriver:

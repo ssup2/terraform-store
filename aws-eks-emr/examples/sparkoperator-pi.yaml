@@ -18,7 +18,6 @@ spec:
     onSubmissionFailureRetryInterval: 20
   driver:
     cores: 1
-    coreLimit: "1200m"
     memory: "512m"
     labels:
       version: 3.1.1
