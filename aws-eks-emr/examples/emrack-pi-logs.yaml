@@ -3,9 +3,9 @@ apiVersion: emrcontainers.services.k8s.aws/v1alpha1
 kind: JobRun
 metadata:
   name: pi-logs
-  namespace: emr-cli  
+  namespace: emr-ack
 spec:
-  name: pi
+  name: pi-logs
   virtualClusterID: kkm9hr2cypco1341w5b0iwuaj
   executionRoleARN: "arn:aws:iam::727618787612:role/ts-eks-emr-eks-emr-ack"
   releaseLabel: "emr-6.8.0-latest"
