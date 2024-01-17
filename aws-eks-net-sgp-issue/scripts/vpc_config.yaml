@@ -1,0 +1,7 @@
+apiVersion: v1
+data:
+  branch-eni-cooldown: "30"
+kind: ConfigMap
+metadata:
+  name: amazon-vpc-cni
+  namespace: kube-system
