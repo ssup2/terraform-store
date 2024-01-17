@@ -20,10 +20,18 @@ Previously, the default IP cooldown time was 30 seconds and could not be set by 
 
 ## Issue Test
 
-* IP cooldown 30s (Preview Default Cooldown Time)
-  ```
-  ```
+### How test
 
-* IP cooldown 60s (Current Default Cooldown Time)
+1. Create EKS cluster with this terraform
+2. Run `test/test.sh`
+3. Count `Error` status pods
 
-* IP cooldown 70s (Modify with )
+### Result
+
+* Total pod count : 200
+
+|IP Cooldown Time|Error status pod count| 
+|---|---|
+|30s (Preview Default Cooldown Time)| 29|
+|60s (Current Default Cooldown Time)|  2|
+|70s|  0|
