@@ -6,7 +6,7 @@ In an environment where SGPP (Security Group per Pod) pods are created and repea
 
 ## Cause of issue
 
-When SGPP pods are repeatedly created and deleted, some pods can be used by recycling the IP of previously deleted pods. However, even if the IP is the same, Mac address is very likely to be different from before. This is because SGPP pod does not currently provide warm IP feature in Linux environment.
+When SGPP pods are repeatedly created and deleted, some pods can be used by recycling the IP of previously deleted pods. However, even if the IP is the same, Mac address is very likely to be different from before. This is because when the SGPP pod repeats creation and deletion, the Branch ENI used by the SGPP pod also repeats creation/deletion. (SGPP pod does not currently provide warm IP feature in Linux environment.)
 
 Linux kernel manages the ARP cache, which stores IP and Mac Address mapping information to minimize frequent ARP requests. The problem is that in an environment where IP and Mac address mapping can change due to the creation or deletion of SGPP pods, there is a high probability that the ARP cache information stored by Linux kernel is invalid.
 
