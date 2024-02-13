@@ -1,0 +1,36 @@
+apiVersion: "sparkoperator.k8s.io/v1beta2"
+kind: SparkApplication
+metadata:
+  name: pi-emr
+  namespace: spark
+spec:
+  type: Python
+  mode: cluster
+  image: "996579266876.dkr.ecr.ap-northeast-2.amazonaws.com/spark/emr-6.14.0:latest"
+  imagePullPolicy: Always
+  mainApplicationFile: local:///usr/lib/spark/examples/src/main/python/pi.py
+  sparkVersion: "3.3.1"
+  restartPolicy:
+    type: OnFailure
+    onFailureRetries: 1
+    onFailureRetryInterval: 10
+    onSubmissionFailureRetries: 5
+    onSubmissionFailureRetryInterval: 20
+  driver:
+    cores: 1
+    memory: "512m"
+    labels:
+      version: 3.3.1
+    serviceAccount: spark
+    volumeMounts:
+      - name: "test-volume"
+        mountPath: "/tmp"
+  executor:
+    cores: 1
+    instances: 1
+    memory: "512m"
+    labels:
+      version: 3.3.1
+    volumeMounts:
+      - name: "test-volume"
+        mountPath: "/tmp"

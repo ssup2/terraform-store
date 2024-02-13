@@ -8,7 +8,7 @@ spec:
   name: pi
   virtualClusterID: kkm9hr2cypco1341w5b0iwuaj
   executionRoleARN: "arn:aws:iam::727618787612:role/ts-eks-emr-eks-emr-ack"
-  releaseLabel: "emr-6.7.0-latest"
+  releaseLabel: "emr-6.14.0-latest"
   jobDriver:
     sparkSubmitJobDriver:
       entryPoint: "local:///usr/lib/spark/examples/src/main/python/pi.py"

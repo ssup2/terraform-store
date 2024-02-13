@@ -5,7 +5,7 @@ aws emr-containers start-job-run \
    --name=pi \
    --region ap-northeast-2 \
    --execution-role-arn arn:aws:iam::727618787612:role/ts-eks-emr-eks-emr-cli \
-   --release-label emr-6.8.0-latest \
+   --release-label emr-6.14.0-latest \
    --job-driver '{
      "sparkSubmitJobDriver":{
        "entryPoint": "local:///usr/lib/spark/examples/src/main/python/pi.py",
