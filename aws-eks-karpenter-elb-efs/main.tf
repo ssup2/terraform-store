@@ -65,7 +65,7 @@ module "vpc" {
   cidr             = local.vpc_cidr
   azs              = local.azs
   public_subnets   = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k)]
-  private_subnets  = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 10)]
+  private_subnets  = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 12, k + 3)]
   database_subnets = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 4, k + 10)]
 
   enable_nat_gateway   = true
@@ -220,7 +220,7 @@ resource "helm_release" "karpenter" {
   name       = "karpenter"
   chart      = "karpenter"
   repository = "oci://public.ecr.aws/karpenter"
-  version    = "v0.24.0"
+  version    = "v0.33.0"
 
   set {
     name  = "settings.aws.clusterName"
