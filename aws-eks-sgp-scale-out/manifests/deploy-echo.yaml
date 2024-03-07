@@ -1,0 +1,28 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo
+  labels:
+    app: echo
+spec:
+  replicas: 3000
+  selector:
+    matchLabels:
+      app: echo
+  template:
+    metadata:
+      labels:
+        app: echo
+    spec:
+      nodeSelector:
+        type: service
+      containers:
+      - name: echo
+        image: public.ecr.aws/j2f4e2d7/jmalloc/echo-server:latest
+        resources:
+          requests:
+            cpu: "500m"
+        ports:
+        - containerPort: 80
+

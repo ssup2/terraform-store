@@ -1,0 +1,39 @@
+---
+apiVersion: vpcresources.k8s.aws/v1beta1
+kind: SecurityGroupPolicy
+metadata:
+  name: psg-test
+spec:
+  podSelector:
+    matchLabels:
+      app: echo-psg
+  securityGroups:
+    groupIds:
+    - sg-01ec3459faec2e3c6
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo-psg
+  labels:
+    app: echo-psg
+spec:
+  replicas: 3000
+  selector:
+    matchLabels:
+      app: echo-psg
+  template:
+    metadata:
+      labels:
+        app: echo-psg
+    spec:
+      nodeSelector:
+        type: service
+      containers:
+      - name: echo-psg
+        image: public.ecr.aws/j2f4e2d7/jmalloc/echo-server:latest
+        resources:
+          requests:
+            cpu: "500m"
+

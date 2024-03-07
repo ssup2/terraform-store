@@ -1,0 +1,111 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: default
+  name: dummy-a
+  labels:
+    app: dummy-a
+spec:
+  replicas: 32
+  selector:
+    matchLabels:
+      app: dummy-a
+  template:
+    metadata:
+      labels:
+        app: dummy-a
+    spec:
+      nodeSelector:
+        topology.kubernetes.io/zone: ap-northeast-2a
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - dummy-a
+            topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: pause
+        image: registry.k8s.io/pause
+        resources:
+          requests:
+            cpu: "1m"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: default
+  name: dummy-b
+  labels:
+    app: dummy-b
+spec:
+  replicas: 32
+  selector:
+    matchLabels:
+      app: dummy-b
+  template:
+    metadata:
+      labels:
+        app: dummy-b
+    spec:
+      nodeSelector:
+        topology.kubernetes.io/zone: ap-northeast-2b
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - dummy-b
+            topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: pause
+        image: registry.k8s.io/pause
+        resources:
+          requests:
+            cpu: "1m"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: default
+  name: dummy-c
+  labels:
+    app: dummy-c
+spec:
+  replicas: 33
+  selector:
+    matchLabels:
+      app: dummy-c
+  template:
+    metadata:
+      labels:
+        app: dummy-c
+    spec:
+      nodeSelector:
+        topology.kubernetes.io/zone: ap-northeast-2c
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - dummy-c
+            topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: pause
+        image: registry.k8s.io/pause
+        resources:
+          requests:
+            cpu: "1m"
+

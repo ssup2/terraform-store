@@ -1,0 +1,13 @@
+{
+  "nodeSelector": {
+    "type": "core"
+  },
+  "tolerations": [
+    {
+      "key": "type",
+      "value": "core",
+      "operator": "Equal",
+      "effect": "NoSchedule"
+    }
+  ]
+}

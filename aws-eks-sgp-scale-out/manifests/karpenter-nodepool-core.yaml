@@ -1,0 +1,28 @@
+apiVersion: karpenter.sh/v1beta1
+kind: NodePool
+metadata:
+  name: core
+spec:
+  template:
+    metadata:
+      labels:
+        type: core
+    spec:
+      nodeClassRef:
+        name: default
+      requirements:
+      - key: karpenter.sh/capacity-type
+        operator: In
+        values: ["on-demand"]
+      - key: karpenter.k8s.aws/instance-family
+        operator: In
+        values: ["m5"]
+      - key: karpenter.k8s.aws/instance-size
+        operator: In
+        values: ["xlarge"]
+      taints:
+      - key: type
+        value: core
+        effect: NoSchedule
+  consolidationPolicy: WhenEmpty
+  consolidateAfter: 30s
